@@ -1,0 +1,62 @@
+import "dotenv/config";
+import { prisma } from "../lib/prisma";
+
+async function main() {
+  // Find the first Ironbound user.
+  // Right now that's you because you're our only user.
+  const user = await prisma.user.findFirst();
+
+  if (!user) {
+    throw new Error("No Ironbound user found. Sign in with Discord first.");
+  }
+
+  // Create SteelBros if it doesn't already exist.
+  const steelbros = await prisma.community.upsert({
+    where: {
+      slug: "steelbros",
+    },
+
+    update: {
+      name: "SteelBros Gaming",
+    },
+
+    create: {
+      name: "SteelBros Gaming",
+      slug: "steelbros",
+    },
+  });
+
+  // Connect your Ironbound account to SteelBros as OWNER.
+  const membership = await prisma.communityMember.upsert({
+    where: {
+      userId_communityId: {
+        userId: user.id,
+        communityId: steelbros.id,
+      },
+    },
+
+    update: {
+      role: "OWNER",
+    },
+
+    create: {
+      userId: user.id,
+      communityId: steelbros.id,
+      role: "OWNER",
+    },
+  });
+
+  console.log("SteelBros Chapter created!");
+  console.log("Chapter:", steelbros.name);
+  console.log("Owner:", user.displayName ?? user.discordUsername);
+  console.log("Role:", membership.role);
+}
+
+main()
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

@@ -7,8 +7,17 @@ export const authOptions = {
     DiscordProvider({
       clientId: process.env.AUTH_DISCORD_ID!,
       clientSecret: process.env.AUTH_DISCORD_SECRET!,
+      authorization: {
+        params: {
+          scope: "identify",
+        },
+      },
     }),
   ],
+
+  session: {
+    strategy: "jwt" as const,
+  },
 
   callbacks: {
     async signIn({ account, profile }: any) {
@@ -44,6 +53,36 @@ export const authOptions = {
 
       return true;
     },
+
+    async jwt({ token, account, profile }: any) {
+      // account and profile are available during the initial Discord sign-in.
+      if (account?.provider === "discord" && profile) {
+        const discordId = profile.id;
+
+        const ironboundUser = await prisma.user.findUnique({
+          where: {
+            discordId,
+          },
+        });
+
+        if (ironboundUser) {
+          token.userId = ironboundUser.id;
+          token.discordId = ironboundUser.discordId;
+        }
+      }
+
+      return token;
+    },
+
+async session({ session, token }: any) {
+  if (session.user) {
+    session.user.id = token.userId;
+    session.user.discordId = token.discordId;
+    session.user.email = null;
+  }
+
+  return session;
+},
   },
 };
 
