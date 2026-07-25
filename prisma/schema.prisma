@@ -26,6 +26,12 @@ enum MatchStatus {
   CANCELLED
 }
 
+enum CommunityStatus {
+  DRAFT
+  ACTIVE
+  SUSPENDED
+}
+
 model User {
   id              String  @id @default(cuid())
   discordId       String  @unique
@@ -43,6 +49,7 @@ model Community {
   id             String  @id @default(cuid())
   name           String
   slug           String  @unique
+  status CommunityStatus @default(ACTIVE)
   logoUrl        String?
   discordGuildId String? @unique
 
