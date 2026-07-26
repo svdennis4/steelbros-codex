@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/auth";
 
 type ChapterPageProps = {
   params: Promise<{
@@ -13,11 +15,14 @@ export default async function ChapterPage({
 }: ChapterPageProps) {
   const { slug } = await params;
 
+  const session = await getServerSession(authOptions);
+
   const chapter = await prisma.community.findUnique({
     where: {
       slug,
     },
     include: {
+      gameSystem: true,
       members: {
         include: {
           user: true,
@@ -47,45 +52,65 @@ export default async function ChapterPage({
     notFound();
   }
 
+  const isOwner = chapter.members.some(
+  (member) =>
+    member.userId === session?.user?.id &&
+    member.role === "OWNER",
+);
+
   const activeSeason = chapter.seasons.find(
     (season) => season.isActive,
   );
 
   return (
     <main className="min-h-screen bg-[#080808] text-white">
-      {/* Chapter Header */}
-      <header className="border-b border-zinc-800 bg-black">
-        <div className="mx-auto max-w-7xl px-6 py-6">
-          <Link
-            href="/"
-            className="text-sm font-bold tracking-[0.3em] text-orange-500"
-          >
-            IRONBOUND
-          </Link>
+    {/* Chapter Banner */}
+    <div
+       className="h-48 border-b border-zinc-800 bg-gradient-to-r from-orange-950 via-black to-black"
+      />
+    {/* Chapter Header */}
+    <header className="border-b border-zinc-800 bg-black">
+      <div className="mx-auto max-w-7xl px-6 py-6">
+        <Link
+          href="/"
+          className="text-sm font-bold tracking-[0.3em] text-orange-500"
+        >
+          IRONBOUND
+        </Link>
 
-          <div className="mt-5 flex flex-col justify-between gap-6 md:flex-row md:items-end">
-            <div>
-              <p className="text-xs font-bold tracking-[0.35em] text-zinc-500">
-                CHAPTER
+        <div className="mt-5 flex flex-col justify-between gap-6 md:flex-row md:items-end">
+          <div>
+            <p className="text-xs font-bold tracking-[0.35em] text-zinc-500">
+              CHAPTER
+            </p>
+
+            <h1 className="mt-2 text-4xl font-black tracking-tight md:text-6xl">
+              {chapter.name}
+            </h1>
+
+            <p className="mt-3 text-lg font-bold text-orange-500">
+              {chapter.gameSystem.name} Chapter
+            </p>
+
+            {chapter.description && (
+              <p className="mt-4 max-w-2xl text-zinc-400">
+                {chapter.description}
               </p>
+            )}
+          </div>
 
-              <h1 className="mt-2 text-4xl font-black tracking-tight md:text-6xl">
-                {chapter.name}
-              </h1>
-            </div>
+          <div className="text-left md:text-right">
+            <p className="text-xs font-bold tracking-[0.25em] text-zinc-600">
+              CURRENT SEASON
+            </p>
 
-            <div className="text-left md:text-right">
-              <p className="text-xs font-bold tracking-[0.25em] text-zinc-600">
-                CURRENT SEASON
-              </p>
-
-              <p className="mt-2 text-xl font-black text-orange-500">
-                {activeSeason?.name ?? "No Active Season"}
-              </p>
-            </div>
+            <p className="mt-2 text-xl font-black text-orange-500">
+              {activeSeason?.name ?? "No Active Season"}
+            </p>
           </div>
         </div>
-      </header>
+      </div>
+    </header>
 
       {/* Chapter Navigation */}
       <nav className="border-b border-zinc-800 bg-zinc-950">
@@ -223,6 +248,14 @@ export default async function ChapterPage({
             >
               RECORD A BATTLE
             </Link>
+          {isOwner && (
+            <Link
+              href={`/chapters/${chapter.slug}/settings`}
+              className="mt-4 block border border-zinc-700 px-5 py-4 text-center font-black tracking-wider text-white hover:border-orange-500 hover:text-orange-500"
+              >
+              MANAGE CHAPTER
+            </Link>
+          )}
           </aside>
         </div>
 
