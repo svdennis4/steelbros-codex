@@ -10,7 +10,7 @@ export async function joinChapter(code: string) {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {
-    throw new Error("Not authenticated.");
+    throw new Error("You must be signed in to join a Chapter.");
   }
 
   const invite = await prisma.chapterInvite.findUnique({
@@ -23,7 +23,7 @@ export async function joinChapter(code: string) {
   });
 
   if (!invite || !invite.active) {
-    throw new Error("Invalid invite.");
+    throw new Error("This invite is invalid or inactive.");
   }
 
   const existingMember =
