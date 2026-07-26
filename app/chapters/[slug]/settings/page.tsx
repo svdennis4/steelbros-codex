@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { updateChapter } from "./actions";
 import { createChapterInvite } from "./actions";
 import Link from "next/link";
+import SiteHeader from "@/components/SiteHeader";
 
 type Props = {
   params: Promise<{
@@ -33,6 +34,7 @@ export default async function ChapterSettingsPage({
   return (
     <main className="min-h-screen bg-[#080808] px-6 py-12 text-white">
       <div className="mx-auto max-w-3xl">
+        <SiteHeader />
         <Link
           href={`/chapters/${chapter.slug}`}
           className="text-xs font-bold tracking-[0.25em] text-zinc-500 hover:text-orange-500"

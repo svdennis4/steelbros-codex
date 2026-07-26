@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
+import SiteHeader from "@/components/SiteHeader";
 
 type ChapterPageProps = {
   params: Promise<{
@@ -69,15 +70,8 @@ export default async function ChapterPage({
        className="h-48 border-b border-zinc-800 bg-gradient-to-r from-orange-950 via-black to-black"
       />
     {/* Chapter Header */}
-    <header className="border-b border-zinc-800 bg-black">
+    <SiteHeader />
       <div className="mx-auto max-w-7xl px-6 py-6">
-        <Link
-          href="/"
-          className="text-sm font-bold tracking-[0.3em] text-orange-500"
-        >
-          IRONBOUND
-        </Link>
-
         <div className="mt-5 flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <div>
             <p className="text-xs font-bold tracking-[0.35em] text-zinc-500">
@@ -110,7 +104,6 @@ export default async function ChapterPage({
           </div>
         </div>
       </div>
-    </header>
 
       {/* Chapter Navigation */}
       <nav className="border-b border-zinc-800 bg-zinc-950">
