@@ -46,7 +46,7 @@ model User {
 }
 
 model GameSystem {
-  id   String @id @default(cuid())
+  id String @id @default(cuid())
 
   name String @unique
   slug String @unique
@@ -58,12 +58,12 @@ model GameSystem {
 }
 
 model Community {
-  id             String  @id @default(cuid())
-  name           String
-  slug           String  @unique
-  description    String?
+  id          String  @id @default(cuid())
+  name        String
+  slug        String  @unique
+  description String?
 
-  status         CommunityStatus @default(ACTIVE)
+  status CommunityStatus @default(ACTIVE)
 
   gameSystemId String
 
@@ -74,6 +74,7 @@ model Community {
   gameSystem GameSystem @relation(fields: [gameSystemId], references: [id])
 
   members CommunityMember[]
+  invites ChapterInvite[]
   seasons Season[]
   matches Match[]
 
@@ -89,8 +90,8 @@ model CommunityMember {
 
   displayName String?
   role        CommunityRole @default(MEMBER)
-  joinedAt DateTime @default(now())
-  
+  joinedAt    DateTime      @default(now())
+
   lifetimeElo    Int @default(1000)
   lifetimeWins   Int @default(0)
   lifetimeLosses Int @default(0)
@@ -214,4 +215,22 @@ model Match {
   @@index([playerOneId])
   @@index([playerTwoId])
   @@index([status])
+}
+
+model ChapterInvite {
+  id String @id @default(cuid())
+
+  communityId String
+
+  code String @unique
+
+  active Boolean @default(true)
+
+  community Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([communityId])
+  @@index([code])
 }

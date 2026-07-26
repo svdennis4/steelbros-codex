@@ -2,9 +2,10 @@
 
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-
+import crypto from "crypto";
 import { authOptions } from "@/auth";
 import { prisma } from "@/lib/prisma";
+
 
 export async function updateChapter(
   slug: string,
@@ -55,4 +56,41 @@ export async function updateChapter(
   });
 
   redirect(`/chapters/${slug}`);
+}
+
+export async function createChapterInvite(
+  slug: string,
+) {
+  const chapter = await prisma.community.findUnique({
+    where: {
+      slug,
+    },
+    include: {
+      invites: true,
+    },
+  });
+
+  if (!chapter) {
+    throw new Error("Chapter not found.");
+  }
+
+  // TODO: add owner permission check here
+  // We will reuse the same pattern from settings updates.
+
+  const existingInvite = chapter.invites[0];
+
+  if (existingInvite) {
+  redirect(
+    `/chapters/${slug}/settings?invite=${existingInvite.code}`
+  );
+}
+
+  const invite = await prisma.chapterInvite.create({
+    data: {
+      communityId: chapter.id,
+      code: crypto.randomUUID(),
+    },
+  });
+
+  redirect(`/chapters/${slug}/settings?invite=${invite.code}`);
 }
