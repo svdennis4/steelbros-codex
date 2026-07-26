@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import SignOutButton from "@/components/SignOutButton";
 
 export default async function Home() {
   const session = await getServerSession(authOptions);
@@ -60,12 +61,7 @@ export default async function Home() {
                 {session.user.name}
               </span>
 
-              <Link
-                href="/api/auth/signout"
-                className="border border-zinc-700 px-4 py-2 text-sm font-bold tracking-wider hover:border-orange-500 hover:text-orange-500"
-              >
-                SIGN OUT
-              </Link>
+              <SignOutButton />
             </div>
           ) : (
             <Link

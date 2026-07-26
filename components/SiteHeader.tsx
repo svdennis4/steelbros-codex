@@ -37,12 +37,12 @@ export default async function SiteHeader() {
             </div>
           </div>
         ) : (
-          <Link
-            href="/api/auth/signin"
+         <Link
+            href="/api/auth/signin/discord?callbackUrl=/"
             className="border border-orange-500 px-4 py-2 text-xs font-black tracking-wider text-orange-500 hover:bg-orange-500 hover:text-black"
           >
             SIGN IN WITH DISCORD
-          </Link>
+        </Link>
         )}
       </div>
     </header>
