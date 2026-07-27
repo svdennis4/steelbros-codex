@@ -41,6 +41,12 @@ model User {
 
   communityMembers CommunityMember[]
 
+  submittedMatches Match[] @relation("SubmittedMatches")
+  playerOneMatches Match[] @relation("PlayerOneMatches")
+  playerTwoMatches Match[] @relation("PlayerTwoMatches")
+  wonMatches       Match[] @relation("WonMatches")
+  confirmedMatches Match[] @relation("ConfirmedMatches")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -52,9 +58,11 @@ model GameSystem {
   slug String @unique
 
   communities Community[]
+  matches     Match[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  factions  Faction[]
 }
 
 model Community {
@@ -76,7 +84,7 @@ model Community {
   members CommunityMember[]
   invites ChapterInvite[]
   seasons Season[]
-  matches Match[]
+  matches MatchCommunity[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -102,12 +110,6 @@ model CommunityMember {
 
   playerFactions PlayerFaction[]
 
-  submittedMatches Match[] @relation("SubmittedMatches")
-  playerOneMatches Match[] @relation("PlayerOneMatches")
-  playerTwoMatches Match[] @relation("PlayerTwoMatches")
-  wonMatches       Match[] @relation("WonMatches")
-  confirmedMatches Match[] @relation("ConfirmedMatches")
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -116,9 +118,14 @@ model CommunityMember {
 }
 
 model Faction {
-  id   String @id @default(cuid())
-  name String @unique
-  slug String @unique
+  id String @id @default(cuid())
+
+  gameSystemId String
+
+  name String
+  slug String
+
+  gameSystem GameSystem @relation(fields: [gameSystemId], references: [id])
 
   playerFactions PlayerFaction[]
 
@@ -127,6 +134,10 @@ model Faction {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@unique([gameSystemId, name])
+  @@unique([gameSystemId, slug])
+  @@index([gameSystemId])
 }
 
 model PlayerFaction {
@@ -160,8 +171,8 @@ model Season {
   endDate   DateTime
   isActive  Boolean  @default(false)
 
-  community Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
-  matches   Match[]
+  community Community        @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  matches   MatchCommunity[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -173,8 +184,7 @@ model Season {
 model Match {
   id String @id @default(cuid())
 
-  communityId String
-  seasonId    String?
+  gameSystemId String
 
   submittedById String
   playerOneId   String
@@ -195,26 +205,57 @@ model Match {
   notes         String?
   disputeReason String?
 
-  community Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
-  season    Season?   @relation(fields: [seasonId], references: [id], onDelete: SetNull)
+  gameSystem GameSystem @relation(fields: [gameSystemId], references: [id])
 
-  submittedBy CommunityMember  @relation("SubmittedMatches", fields: [submittedById], references: [id])
-  playerOne   CommunityMember  @relation("PlayerOneMatches", fields: [playerOneId], references: [id])
-  playerTwo   CommunityMember  @relation("PlayerTwoMatches", fields: [playerTwoId], references: [id])
-  winner      CommunityMember? @relation("WonMatches", fields: [winnerId], references: [id])
-  confirmedBy CommunityMember? @relation("ConfirmedMatches", fields: [confirmedById], references: [id])
+  submittedBy User  @relation("SubmittedMatches", fields: [submittedById], references: [id])
+  playerOne   User  @relation("PlayerOneMatches", fields: [playerOneId], references: [id])
+  playerTwo   User  @relation("PlayerTwoMatches", fields: [playerTwoId], references: [id])
+  winner      User? @relation("WonMatches", fields: [winnerId], references: [id])
+  confirmedBy User? @relation("ConfirmedMatches", fields: [confirmedById], references: [id])
 
   playerOneFaction Faction @relation("PlayerOneFaction", fields: [playerOneFactionId], references: [id])
   playerTwoFaction Faction @relation("PlayerTwoFaction", fields: [playerTwoFactionId], references: [id])
 
+  communities MatchCommunity[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([communityId, playedAt])
-  @@index([seasonId])
+  @@index([gameSystemId, playedAt])
   @@index([playerOneId])
   @@index([playerTwoId])
   @@index([status])
+}
+
+model MatchCommunity {
+  id String @id @default(cuid())
+
+  matchId     String
+  communityId String
+  seasonId    String?
+
+  // Overall Chapter Elo snapshots
+  playerOneEloBefore Int?
+  playerOneEloAfter  Int?
+  playerTwoEloBefore Int?
+  playerTwoEloAfter  Int?
+
+  // Chapter-specific faction Elo snapshots
+  playerOneFactionEloBefore Int?
+  playerOneFactionEloAfter  Int?
+  playerTwoFactionEloBefore Int?
+  playerTwoFactionEloAfter  Int?
+
+  match     Match     @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  community Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  season    Season?   @relation(fields: [seasonId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([matchId, communityId])
+  @@index([communityId])
+  @@index([seasonId])
 }
 
 model ChapterInvite {
