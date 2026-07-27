@@ -48,7 +48,7 @@ export default async function ChapterPage({
             playedAt: "desc",
         },
       },
-      inclue:{
+      include:{
         match: true,
       },
         take: 5,
