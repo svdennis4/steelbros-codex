@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { submitBattle } from "./actions";
 
 type SharedChapter = {
   id: string;
@@ -100,8 +101,14 @@ export default function BattleForm({
     setOpponentFactionId("");
   }
 
+  const today = new Date().toISOString().split("T")[0];
+
   return (
-    <div className="border border-zinc-800 bg-zinc-950 p-6">
+    <form
+      action={submitBattle}
+      className="border border-zinc-800 bg-zinc-950 p-6"
+    >
+      {/* Opponent */}
       <div>
         <label
           htmlFor="opponent"
@@ -112,8 +119,10 @@ export default function BattleForm({
 
         <select
           id="opponent"
+          name="opponentId"
           value={opponentId}
           onChange={(event) => handleOpponentChange(event.target.value)}
+          required
           className="mt-2 block w-full border border-zinc-700 bg-black px-4 py-3 text-zinc-100"
         >
           <option value="">Select an opponent</option>
@@ -126,6 +135,7 @@ export default function BattleForm({
         </select>
       </div>
 
+      {/* Game System */}
       {selectedOpponent && availableGameSystems.length > 1 && (
         <div className="mt-8">
           <label
@@ -137,10 +147,12 @@ export default function BattleForm({
 
           <select
             id="gameSystem"
+            name="gameSystemId"
             value={selectedGameSystemId}
             onChange={(event) =>
               handleGameSystemChange(event.target.value)
             }
+            required
             className="mt-2 block w-full border border-zinc-700 bg-black px-4 py-3 text-zinc-100"
           >
             <option value="">Select a game system</option>
@@ -154,8 +166,20 @@ export default function BattleForm({
         </div>
       )}
 
+      {/* Automatically include the game system when only one is available */}
+      {selectedOpponent &&
+        availableGameSystems.length === 1 &&
+        activeGameSystemId && (
+          <input
+            type="hidden"
+            name="gameSystemId"
+            value={activeGameSystemId}
+          />
+        )}
+
       {selectedOpponent && activeGameSystemId && (
         <>
+          {/* Chapters */}
           <div className="mt-8">
             <p className="text-xs font-black tracking-wider text-zinc-400">
               SHARED CHAPTERS
@@ -193,6 +217,7 @@ export default function BattleForm({
             </div>
           </div>
 
+          {/* Factions */}
           <div className="mt-8 grid gap-6 md:grid-cols-2">
             <div>
               <label
@@ -204,10 +229,12 @@ export default function BattleForm({
 
               <select
                 id="playerFaction"
+                name="playerFactionId"
                 value={playerFactionId}
                 onChange={(event) =>
                   setPlayerFactionId(event.target.value)
                 }
+                required
                 className="mt-2 block w-full border border-zinc-700 bg-black px-4 py-3 text-zinc-100"
               >
                 <option value="">Select your faction</option>
@@ -230,10 +257,12 @@ export default function BattleForm({
 
               <select
                 id="opponentFaction"
+                name="opponentFactionId"
                 value={opponentFactionId}
                 onChange={(event) =>
                   setOpponentFactionId(event.target.value)
                 }
+                required
                 className="mt-2 block w-full border border-zinc-700 bg-black px-4 py-3 text-zinc-100"
               >
                 <option value="">Select their faction</option>
@@ -246,8 +275,140 @@ export default function BattleForm({
               </select>
             </div>
           </div>
+
+          {/* Scores */}
+          <div className="mt-8">
+            <p className="text-xs font-black tracking-wider text-zinc-400">
+              FINAL SCORE
+            </p>
+
+            <div className="mt-4 grid gap-6 md:grid-cols-2">
+              <div>
+                <label
+                  htmlFor="playerScore"
+                  className="text-sm font-bold text-zinc-200"
+                >
+                  Your Score
+                </label>
+
+                <input
+                  id="playerScore"
+                  name="playerScore"
+                  type="number"
+                  min="0"
+                  step="1"
+                  required
+                  placeholder="0"
+                  className="mt-2 block w-full border border-zinc-700 bg-black px-4 py-3 text-zinc-100"
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="opponentScore"
+                  className="text-sm font-bold text-zinc-200"
+                >
+                  {selectedOpponent.name}&apos;s Score
+                </label>
+
+                <input
+                  id="opponentScore"
+                  name="opponentScore"
+                  type="number"
+                  min="0"
+                  step="1"
+                  required
+                  placeholder="0"
+                  className="mt-2 block w-full border border-zinc-700 bg-black px-4 py-3 text-zinc-100"
+                />
+              </div>
+            </div>
+
+            <p className="mt-2 text-xs text-zinc-500">
+              The result will be determined automatically from the final
+              score.
+            </p>
+          </div>
+
+          {/* Date */}
+          <div className="mt-8">
+            <label
+              htmlFor="playedAt"
+              className="text-xs font-black tracking-wider text-zinc-400"
+            >
+              DATE PLAYED
+            </label>
+
+            <input
+              id="playedAt"
+              name="playedAt"
+              type="date"
+              defaultValue={today}
+              required
+              className="mt-2 block w-full border border-zinc-700 bg-black px-4 py-3 text-zinc-100"
+            />
+          </div>
+
+          {/* Mission */}
+          <div className="mt-8">
+            <label
+              htmlFor="mission"
+              className="text-xs font-black tracking-wider text-zinc-400"
+            >
+              MISSION
+              <span className="ml-2 font-normal text-zinc-600">
+                OPTIONAL
+              </span>
+            </label>
+
+            <input
+              id="mission"
+              name="mission"
+              type="text"
+              maxLength={100}
+              placeholder="Enter mission"
+              className="mt-2 block w-full border border-zinc-700 bg-black px-4 py-3 text-zinc-100"
+            />
+          </div>
+
+          {/* Notes */}
+          <div className="mt-8">
+            <label
+              htmlFor="notes"
+              className="text-xs font-black tracking-wider text-zinc-400"
+            >
+              BATTLE NOTES
+              <span className="ml-2 font-normal text-zinc-600">
+                OPTIONAL
+              </span>
+            </label>
+
+            <textarea
+              id="notes"
+              name="notes"
+              rows={4}
+              maxLength={1000}
+              placeholder="Anything worth remembering about the battle..."
+              className="mt-2 block w-full resize-none border border-zinc-700 bg-black px-4 py-3 text-zinc-100"
+            />
+          </div>
+
+          {/* Submit */}
+          <div className="mt-10 border-t border-zinc-800 pt-6">
+            <button
+              type="submit"
+              className="w-full bg-orange-500 px-6 py-4 text-sm font-black tracking-[0.2em] text-black transition hover:bg-orange-400"
+            >
+              SUBMIT BATTLE
+            </button>
+
+            <p className="mt-3 text-center text-xs text-zinc-500">
+              Submitted battles count immediately toward the selected
+              Chapters.
+            </p>
+          </div>
         </>
       )}
-    </div>
+    </form>
   );
 }
