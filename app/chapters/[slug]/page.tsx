@@ -38,21 +38,21 @@ export default async function ChapterPage({
         },
       },
       matches: {
-        where: {
-          match: {
-            status: "CONFIRMED",
-        },
-      },
-        orderBy: {
-          match:{
-            playedAt: "desc",
-        },
-      },
-      include:{
-        match: true,
-      },
-        take: 5,
-      },
+  where: {
+    match: {
+      status: "CONFIRMED",
+    },
+  },
+  orderBy: {
+    match: {
+      playedAt: "desc",
+    },
+  },
+  include: {
+    match: true,
+  },
+  take: 5,
+},
     },
   });
 
