@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../generated/prisma"
@@ -19,17 +14,15 @@ enum CommunityRole {
   OWNER
 }
 
-enum MatchStatus {
-  PENDING
-  CONFIRMED
-  DISPUTED
-  CANCELLED
-}
-
 enum CommunityStatus {
   DRAFT
   ACTIVE
   SUSPENDED
+}
+
+enum MatchCommunityStatus {
+  ACTIVE
+  VOIDED
 }
 
 model User {
@@ -45,7 +38,8 @@ model User {
   playerOneMatches Match[] @relation("PlayerOneMatches")
   playerTwoMatches Match[] @relation("PlayerTwoMatches")
   wonMatches       Match[] @relation("WonMatches")
-  confirmedMatches Match[] @relation("ConfirmedMatches")
+
+  voidedMatchCommunities MatchCommunity[] @relation("VoidedMatchCommunities")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -58,11 +52,11 @@ model GameSystem {
   slug String @unique
 
   communities Community[]
+  factions    Faction[]
   matches     Match[]
 
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  factions  Faction[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Community {
@@ -193,17 +187,15 @@ model Match {
   playerOneFactionId String
   playerTwoFactionId String
 
-  winnerId      String?
-  confirmedById String?
+  playerOneScore Int?
+  playerTwoScore Int?
 
-  status MatchStatus @default(PENDING)
+  winnerId String?
 
-  playedAt    DateTime
-  confirmedAt DateTime?
+  playedAt DateTime
 
-  mission       String?
-  notes         String?
-  disputeReason String?
+  mission String?
+  notes   String?
 
   gameSystem GameSystem @relation(fields: [gameSystemId], references: [id])
 
@@ -211,7 +203,6 @@ model Match {
   playerOne   User  @relation("PlayerOneMatches", fields: [playerOneId], references: [id])
   playerTwo   User  @relation("PlayerTwoMatches", fields: [playerTwoId], references: [id])
   winner      User? @relation("WonMatches", fields: [winnerId], references: [id])
-  confirmedBy User? @relation("ConfirmedMatches", fields: [confirmedById], references: [id])
 
   playerOneFaction Faction @relation("PlayerOneFaction", fields: [playerOneFactionId], references: [id])
   playerTwoFaction Faction @relation("PlayerTwoFaction", fields: [playerTwoFactionId], references: [id])
@@ -222,9 +213,10 @@ model Match {
   updatedAt DateTime @updatedAt
 
   @@index([gameSystemId, playedAt])
+  @@index([submittedById])
   @@index([playerOneId])
   @@index([playerTwoId])
-  @@index([status])
+  @@index([winnerId])
 }
 
 model MatchCommunity {
@@ -233,6 +225,8 @@ model MatchCommunity {
   matchId     String
   communityId String
   seasonId    String?
+
+  status MatchCommunityStatus @default(ACTIVE)
 
   // Overall Chapter Elo snapshots
   playerOneEloBefore Int?
@@ -246,9 +240,15 @@ model MatchCommunity {
   playerTwoFactionEloBefore Int?
   playerTwoFactionEloAfter  Int?
 
+  // Moderation / audit trail
+  voidedAt   DateTime?
+  voidedById String?
+  voidReason String?
+
   match     Match     @relation(fields: [matchId], references: [id], onDelete: Cascade)
   community Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
   season    Season?   @relation(fields: [seasonId], references: [id], onDelete: SetNull)
+  voidedBy  User?     @relation("VoidedMatchCommunities", fields: [voidedById], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -256,6 +256,8 @@ model MatchCommunity {
   @@unique([matchId, communityId])
   @@index([communityId])
   @@index([seasonId])
+  @@index([status])
+  @@index([voidedById])
 }
 
 model ChapterInvite {

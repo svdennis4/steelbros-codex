@@ -30,7 +30,7 @@ export default async function Home() {
             href="/"
             className="text-2xl font-black tracking-[0.18em] text-orange-500"
           >
-            IRONBOUND
+            LEGENDARIS
           </Link>
 
             <nav className="hidden items-center gap-8 text-sm font-semibold tracking-wider text-zinc-400 md:flex">
@@ -84,7 +84,7 @@ export default async function Home() {
           </p>
 
           <h1 className="text-6xl font-black tracking-tight sm:text-7xl md:text-8xl">
-            IRONBOUND
+            LEGENDARIS
           </h1>
 
           <p className="mx-auto mt-6 max-w-2xl text-xl leading-8 text-zinc-400">
@@ -127,7 +127,7 @@ export default async function Home() {
     <div>
       <h3 className="text-2xl font-black">YOUR CHAPTERS</h3>
       <p className="mt-2 text-zinc-500">
-        The communities you belong to on Ironbound.
+        The communities you belong to on Legendaris.
       </p>
     </div>
 
