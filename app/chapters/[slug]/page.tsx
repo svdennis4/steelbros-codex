@@ -241,7 +241,7 @@ export default async function ChapterPage({
             </p>
 
             <Link
-              href={`/chapters/${chapter.slug}/battles/new`}
+              href={`/battles/new?chapter=${chapter.id}`}
               className="mt-6 block bg-orange-600 px-5 py-4 text-center font-black tracking-wider text-black hover:bg-orange-500"
             >
               RECORD A BATTLE

@@ -49,6 +49,20 @@ export default async function BattlePage({
 
   const isDraw = battle.winnerId === null;
 
+  function formatEloChange(before: number | null, after: number | null) {
+    if (before === null || after === null) {
+        return null;
+    }
+
+    const change = after - before;
+
+    if (change > 0) {
+        return `+${change}`;
+    }
+
+    return `${change}`;
+}
+
   return (
     <main className="mx-auto max-w-5xl px-6 py-10">
       <div className="mb-8">
@@ -152,34 +166,166 @@ export default async function BattlePage({
         </div>
 
         <div className="border border-zinc-800 bg-zinc-950 p-6">
-          <p className="text-xs font-black tracking-wider text-zinc-500">
-            RECORDED IN
-          </p>
+  <p className="text-xs font-black tracking-wider text-zinc-500">
+    RECORDED IN
+  </p>
 
-          <div className="mt-4 space-y-3">
-            {battle.communities.map((entry) => (
-              <div
-                key={entry.id}
-                className="border border-zinc-800 bg-black p-4"
-              >
-                <Link
-                  href={`/chapters/${entry.community.slug}`}
-                  className="font-bold text-zinc-100 hover:text-orange-500"
-                >
-                  {entry.community.name}
-                </Link>
+  <div className="mt-4 space-y-4">
+    {battle.communities.map((entry) => {
+      const playerOneEloChange = formatEloChange(
+        entry.playerOneEloBefore,
+        entry.playerOneEloAfter
+      );
 
-                <div className="mt-2 flex gap-3 text-xs text-zinc-500">
-                  <span>{entry.status}</span>
+      const playerTwoEloChange = formatEloChange(
+        entry.playerTwoEloBefore,
+        entry.playerTwoEloAfter
+      );
 
-                  {entry.season && (
-                    <span>• {entry.season.name}</span>
-                  )}
+      const playerOneFactionEloChange = formatEloChange(
+        entry.playerOneFactionEloBefore,
+        entry.playerOneFactionEloAfter
+      );
+
+      const playerTwoFactionEloChange = formatEloChange(
+        entry.playerTwoFactionEloBefore,
+        entry.playerTwoFactionEloAfter
+      );
+
+      return (
+        <div
+          key={entry.id}
+          className="border border-zinc-800 bg-black p-4"
+        >
+          <div>
+            <Link
+              href={`/chapters/${entry.community.slug}`}
+              className="font-black text-zinc-100 hover:text-orange-500"
+            >
+              {entry.community.name}
+            </Link>
+
+            {entry.season && (
+              <p className="mt-1 text-xs text-zinc-500">
+                {entry.season.name}
+              </p>
+            )}
+
+            {entry.status === "VOIDED" && (
+              <p className="mt-2 text-xs font-black tracking-wider text-red-500">
+                VOIDED
+              </p>
+            )}
+          </div>
+
+          <div className="mt-5 grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+            {/* Player One */}
+            <div>
+              <p className="text-xs font-black text-zinc-400">
+                {playerOneName}
+              </p>
+
+              {entry.playerOneEloAfter !== null && (
+                <div className="mt-2">
+                  <p className="text-lg font-black text-zinc-100">
+                    {entry.playerOneEloAfter} ELO
+                  </p>
+
+                  <p
+                    className={`text-xs font-bold ${
+                      (playerOneEloChange ?? "").startsWith("+")
+                        ? "text-green-500"
+                        : playerOneEloChange === "0"
+                          ? "text-zinc-500"
+                          : "text-red-500"
+                    }`}
+                  >
+                    {playerOneEloChange}
+                  </p>
                 </div>
-              </div>
-            ))}
+              )}
+
+              {entry.playerOneFactionEloAfter !== null && (
+                <div className="mt-4">
+                  <p className="text-xs text-zinc-500">
+                    {battle.playerOneFaction.name}
+                  </p>
+
+                  <p className="mt-1 text-sm font-bold text-zinc-300">
+                    {entry.playerOneFactionEloAfter} Faction Elo
+                  </p>
+
+                  <p
+                    className={`text-xs font-bold ${
+                      (playerOneFactionEloChange ?? "").startsWith("+")
+                        ? "text-green-500"
+                        : playerOneFactionEloChange === "0"
+                          ? "text-zinc-500"
+                          : "text-red-500"
+                    }`}
+                  >
+                    {playerOneFactionEloChange}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Player Two */}
+            <div>
+              <p className="text-xs font-black text-zinc-400">
+                {playerTwoName}
+              </p>
+
+              {entry.playerTwoEloAfter !== null && (
+                <div className="mt-2">
+                  <p className="text-lg font-black text-zinc-100">
+                    {entry.playerTwoEloAfter} ELO
+                  </p>
+
+                  <p
+                    className={`text-xs font-bold ${
+                      (playerTwoEloChange ?? "").startsWith("+")
+                        ? "text-green-500"
+                        : playerTwoEloChange === "0"
+                          ? "text-zinc-500"
+                          : "text-red-500"
+                    }`}
+                  >
+                    {playerTwoEloChange}
+                  </p>
+                </div>
+              )}
+
+              {entry.playerTwoFactionEloAfter !== null && (
+                <div className="mt-4">
+                  <p className="text-xs text-zinc-500">
+                    {battle.playerTwoFaction.name}
+                  </p>
+
+                  <p className="mt-1 text-sm font-bold text-zinc-300">
+                    {entry.playerTwoFactionEloAfter} Faction Elo
+                  </p>
+
+                  <p
+                    className={`text-xs font-bold ${
+                      (playerTwoFactionEloChange ?? "").startsWith("+")
+                        ? "text-green-500"
+                        : playerTwoFactionEloChange === "0"
+                          ? "text-zinc-500"
+                          : "text-red-500"
+                    }`}
+                  >
+                    {playerTwoFactionEloChange}
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
+      );
+    })}
+  </div>
+</div>
       </div>
 
       {battle.notes && (
